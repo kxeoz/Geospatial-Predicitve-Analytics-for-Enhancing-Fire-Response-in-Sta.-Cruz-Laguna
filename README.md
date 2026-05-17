@@ -1,0 +1,2 @@
+# Geospatial-Predicitve-Analytics-for-Enhancing-Fire-Response-in-Sta.-Cruz-Laguna
+An intelligent data science platform designed to enhance fire management, risk assessment, and resource deployment. By leveraging ensemble machine learning techniques, this system analyzes historical incident records, environmental factors, and spatial data to predict fire vulnerability and optimize emergency response strategies.
