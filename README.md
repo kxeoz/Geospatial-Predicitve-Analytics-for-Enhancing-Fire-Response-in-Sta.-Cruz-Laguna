@@ -35,5 +35,5 @@ The core of the system relies on an ensemble learning approach to minimize varia
 ### Steps
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/yourusername/fire-response-system.git](https://github.com/yourusername/fire-response-system.git)
-   cd fire-response-system
+   git clone [https://github.com/kxeoz/Geospatial-Predicitve-Analytics-for-Enhancing-Fire-Response-in-Sta.-Cruz-Laguna.git](https://github.com/kxeoz/Geospatial-Predicitve-Analytics-for-Enhancing-Fire-Response-in-Sta.-Cruz-Laguna.git)
+   cd Geospatial-Predicitve-Analytics-for-Enhancing-Fire-Response-in-Sta.-Cruz-Laguna
