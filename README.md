@@ -2,6 +2,8 @@
 
 An intelligent data science platform designed to enhance fire management, risk assessment, and resource deployment. By leveraging ensemble machine learning techniques, this system analyzes historical incident records, environmental factors, and spatial data to predict fire vulnerability and optimize emergency response strategies.
 
+![System Front Page](images/front_page.jfif)
+
 ## 🚀 Key Features
 
 *   **Predictive Risk Modeling:** Utilizes a high-performance ensemble learning framework to classify and predict fire risk levels across localized zones.
