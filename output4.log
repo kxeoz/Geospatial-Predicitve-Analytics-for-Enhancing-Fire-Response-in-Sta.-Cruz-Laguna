@@ -1,0 +1,12 @@
+﻿.\.venv\Scripts\python.exe :   File "C:\Users\DotchCloud\Downloads\thesis 
+ewan\fire-emergency-response-main\fire-ml-backend\app.py", line 499
+At line:1 char:1
++ .\.venv\Scripts\python.exe fire-ml-backend\app.py *>&1 | Out-File -Fi ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "C:\User...p.py", line 499 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(f"Loaded {len(fire_incidents)} incidents from SQLite.")
+                                                                 ^
+IndentationError: unindent does not match any outer indentation level

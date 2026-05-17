@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFP Admin Login - Fire Response System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('images/images (1).png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+        .fire-theme { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .logo-shadow {
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="max-w-md w-full mx-4 py-12">
+        <!-- Logo & Header -->
+        <div class="text-center mb-8">
+            <div class="inline-block mb-4 logo-shadow">
+                <img src="images/bfp-logo.png" 
+                     alt="BFP Logo" 
+                     class="w-32 h-32 object-contain mx-auto">
+            </div>
+            <h1 class="text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">BFP ADMIN</h1>
+            <p class="text-red-100 mt-2 font-medium drop-shadow-md">Emergency Response Navigation System</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="glass-morphism rounded-3xl shadow-2xl p-8 transition-all duration-500 hover:shadow-red-500/20">
+            <div class="mb-6 text-center">
+                <h2 class="text-xl font-bold text-gray-800">Welcome Back</h2>
+                <p class="text-gray-500 text-sm">Please sign in to continue</p>
+            </div>
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2 ml-1 uppercase tracking-wider">Username</label>
+                    <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-red-500 transition-colors">
+                            <i data-feather="user" class="w-5 h-5"></i>
+                        </span>
+                        <input type="email" id="username" name="username" required 
+                               placeholder="admin@bfp.gov.ph"
+                               class="block w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none text-gray-800 font-medium">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2 ml-1 uppercase tracking-wider">Password</label>
+                    <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-red-500 transition-colors">
+                            <i data-feather="lock" class="w-5 h-5"></i>
+                        </span>
+                        <input type="password" id="password" name="password" required
+                               placeholder="••••••••"
+                               class="block w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none text-gray-800 font-medium">
+                    </div>
+                </div>
+
+                <div id="errorMessage" class="hidden bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-xl text-sm animate-pulse">
+                    <div class="flex items-center">
+                        <i data-feather="alert-triangle" class="w-5 h-5 mr-3"></i>
+                        <span id="errorText" class="font-bold">Invalid credentials</span>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full fire-theme text-white font-bold py-4 px-6 rounded-2xl shadow-xl hover:shadow-red-600/30 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center group">
+                    <span id="btnText" class="text-lg">SIGN IN</span>
+                    <i data-feather="chevron-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="text-center mt-8">
+            <p class="text-white/80 text-sm font-medium drop-shadow-md">
+                &copy; 2026 Bureau of Fire Protection - Laguna
+            </p>
+            <div class="flex justify-center space-x-4 mt-2">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                <span class="text-[10px] text-red-200 font-bold uppercase tracking-widest">System Operational</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+
+        // Clear existing session
+        localStorage.removeItem('bfp_admin_logged_in');
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button');
+            const btnText = document.getElementById('btnText');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // UI Loading state
+            btn.disabled = true;
+            btn.classList.add('opacity-70');
+            btnText.textContent = 'Authenticating...';
+            errorMessage.classList.add('hidden');
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Store simple session
+                    localStorage.setItem('bfp_admin_logged_in', 'true');
+                    localStorage.setItem('bfp_admin_user', JSON.stringify(data.user));
+                    
+                    // Redirect to dashboard
+                    window.location.href = data.redirect || '/';
+                } else {
+                    errorMessage.classList.remove('hidden');
+                    document.getElementById('errorText').textContent = data.message || 'Invalid credentials';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.classList.remove('hidden');
+                document.getElementById('errorText').textContent = 'Server connection error';
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-70');
+                btnText.textContent = 'Sign In';
+            }
+        });
+    </script>
+</body>
+</html>

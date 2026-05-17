@@ -1,0 +1,2 @@
+(1, 'admin@bfp.gov.ph', 'bfpadmin000', 'admin')
+(2, 'user@bfp.gov.ph', 'user000', 'user')

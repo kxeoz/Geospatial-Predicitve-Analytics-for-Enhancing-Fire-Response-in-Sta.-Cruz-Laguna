@@ -1,0 +1,1 @@
+﻿Error loading analyzer: Can't get attribute '__pyx_unpickle_CyHalfSquaredError' on <module 'sklearn._loss._loss' from 'C:\\Users\\DotchCloud\\Downloads\\thesis ewan\\fire-emergency-response-main\\.venv\\Lib\\site-packages\\sklearn\\_loss\\_loss.cp312-win_amd64.pyd'>

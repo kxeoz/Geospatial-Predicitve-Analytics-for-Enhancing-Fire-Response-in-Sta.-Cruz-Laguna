@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Feedback - Fire Response System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // Check for session before rendering
+        if (!localStorage.getItem('bfp_admin_logged_in')) {
+            window.location.href = '/login';
+        }
+    </script>
+    <style>
+        /* Any page-specific screen styles can go here */
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Print Preview Overlay -->
+    <div id="printPreviewOverlay">
+        <div class="preview-controls">
+            <button onclick="closePrintPreview()" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-bold flex items-center shadow-md">
+                <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i> Back to Feedback
+            </button>
+            <button onclick="triggerActualPrint()" class="px-8 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold flex items-center shadow-xl">
+                <i data-feather="printer" class="w-5 h-5 mr-2"></i> Confirm and Print Official PDF
+            </button>
+        </div>
+        
+        <!-- The Report is here inside the overlay for previewing -->
+        <div id="printableReport" class="bg-white">
+            <div class="flex items-center justify-between border-b-4 border-gray-900 pb-4 mb-8">
+                <div class="flex items-center space-x-4">
+                    <img src="images/images.png" alt="BFP Logo" class="w-24 h-24 object-contain">
+                    <div>
+                        <h1 class="text-2xl font-black text-gray-900 uppercase">BUREAU OF FIRE PROTECTION</h1>
+                        <p class="text-gray-700 font-bold uppercase tracking-wider">Fire Response Navigation System</p>
+                        <p class="text-sm text-gray-600 mt-1 font-medium italic">Official Incident Response Report</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Date of Incident:</p>
+                    <div id="print-date" class="text-sm font-black text-gray-900 mb-3 border-b-2 border-gray-900 pb-1"></div>
+                    <div id="print-incident-id" class="text-xl font-black text-red-700 uppercase"></div>
+                </div>
+            </div>
+
+            <div id="print-content" class="space-y-6">
+                <!-- Data will be injected here -->
+            </div>
+
+            <!-- Signatories -->
+            <div class="mt-16 pt-8 border-t-2 border-gray-900 grid grid-cols-2 gap-12 text-center">
+                <div>
+                    <p class="text-sm font-black text-gray-900 mb-10">PREPARED BY:</p>
+                    <div class="w-64 h-px bg-gray-900 mx-auto mb-2"></div>
+                    <p class="text-xs font-black uppercase text-gray-900">Incident Commander</p>
+                    <p class="text-[10px] text-gray-600 font-bold">BFP Santa Cruz, Laguna</p>
+                </div>
+                <div>
+                    <p class="text-sm font-black text-gray-900 mb-10">APPROVED BY:</p>
+                    <div class="w-64 h-px bg-gray-900 mx-auto mb-2"></div>
+                    <p class="text-xs font-black uppercase text-gray-900">Reporting Officer</p>
+                    <p class="text-[10px] text-gray-600 font-bold">BFP Santa Cruz, Laguna</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-[0.3em]">*** End of Official Document ***</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header matching dashboard -->
+    <header class="fire-theme shadow-lg sticky top-0 z-10" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white;">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i data-feather="navigation" class="w-6 h-6 md:w-8 md:h-8"></i>
+                <h1 class="text-lg md:text-xl font-bold">Fire Response Navigation</h1>
+            </div>
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <nav class="hidden md:flex space-x-4">
+                    <a href="dashboard.html?section=dashboard" class="nav-btn">
+                        <i data-feather="map" class="w-4 h-4 inline mr-1"></i> Dashboard
+                    </a>
+                    <a href="dashboard.html?section=hydrants" class="nav-btn">
+                        <i data-feather="droplet" class="w-4 h-4 inline mr-1"></i> Hydrants
+                    </a>
+                    <a href="dashboard.html?section=incidents" class="nav-btn">
+                        <i data-feather="database" class="w-4 h-4 inline mr-1"></i> Incidents
+                    </a>
+                    <a href="dashboard.html?section=history" class="nav-btn">
+                        <i data-feather="list" class="w-4 h-4 inline mr-1"></i> History
+                    </a>
+                    <a href="dashboard.html?section=contacts" class="nav-btn">
+                        <i data-feather="phone" class="w-4 h-4 inline mr-1"></i> Contacts
+                    </a>
+                </nav>
+                <div id="current-time" class="text-right leading-tight text-white/80 font-medium"></div>
+                <div id="location-status" class="location-status location-inactive" title="Location Tracking Status">
+                    <div class="location-dot"></div>
+                    <span class="location-text">GPS</span>
+                </div>
+                <button onclick="logout()" class="p-2 bg-red-900/50 hover:bg-red-950 rounded-lg text-white transition-colors" title="Logout">
+                    <i data-feather="log-out" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i data-feather="bar-chart-2" class="w-8 h-8 inline-block mr-2"></i>
+                    Incident Feedback & Analysis
+                </h1>
+                <div class="flex space-x-2">
+                    <button onclick="printReport()" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg flex items-center shadow-md transition duration-300">
+                        <i data-feather="printer" class="w-5 h-5 mr-2"></i>
+                        Print PDF
+                    </button>
+                    <button onclick="showFullReport()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center shadow-md transition duration-300">
+                        <i data-feather="file-text" class="w-5 h-5 mr-2"></i>
+                        Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Full Report Modal -->
+            <div id="reportModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="fire-theme p-4 flex justify-between items-center text-white" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                        <h2 class="text-xl font-bold flex items-center">
+                            <i data-feather="file-text" class="mr-2"></i>
+                            Full Incident Report Details
+                        </h2>
+                        <button onclick="closeFullReport()" class="hover:bg-red-700 p-1 rounded-full">
+                            <i data-feather="x"></i>
+                        </button>
+                    </div>
+                    <div id="modalContent" class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Content will be injected here -->
+                    </div>
+                    <div class="p-4 bg-gray-50 border-t flex justify-end gap-3">
+                        <button onclick="editReport()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center">
+                            <i data-feather="edit" class="w-4 h-4 mr-2"></i> Edit Report
+                        </button>
+                        <button onclick="closeFullReport()" class="px-6 py-2 bg-gray-800 text-white rounded-lg font-semibold">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Content -->
+            <div id="feedbackContent" class="space-y-6">
+                <div class="flex items-center justify-center py-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <span class="ml-3 text-gray-600 font-medium">Loading analysis...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getBackendUrl() {
+            const origin = window.location.origin;
+            return `${origin}/api`;
+        }
+
+        // Get incident ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const incidentId = urlParams.get('id');
+        let currentReport = null; // Store report for modal
+
+        if (!incidentId) {
+            document.getElementById('feedbackContent').innerHTML = `
+                <div class="bg-red-50 border-l-4 border-red-400 p-6">
+                    <div class="flex items-center mb-3">
+                        <i data-feather="alert-triangle" class="w-6 h-6 text-red-400 mr-2"></i>
+                        <h3 class="text-lg font-semibold text-red-800">No Incident Specified</h3>
+                    </div>
+                    <p class="text-red-700">Please select an incident from the history to view its performance analysis.</p>
+                </div>
+            `;
+            feather.replace();
+        } else {
+            loadFeedback(incidentId);
+        }
+
+        async function loadFeedback(id) {
+            try {
+                const url = `${getBackendUrl()}/comprehensive-feedback?incident_id=${id}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} at ${url}`);
+                }
+                
+                const feedback = await response.json();
+                currentReport = feedback.report_details;
+                displayFeedback(feedback);
+            } catch (error) {
+                console.error('Error loading feedback:', error);
+                document.getElementById('feedbackContent').innerHTML = `
+                    <div class="bg-red-50 border-l-4 border-red-400 p-6">
+                        <div class="flex items-center mb-3">
+                            <i data-feather="alert-triangle" class="w-6 h-6 text-red-400 mr-2"></i>
+                            <h3 class="text-lg font-semibold text-red-800">Error Loading Feedback</h3>
+                        </div>
+                        <p class="text-red-700">Failed to load feedback for incident #${id}</p>
+                        <p class="text-sm text-red-600 mt-2">Error: ${error.message}</p>
+                    </div>
+                `;
+                feather.replace();
+            }
+        }
+
+        function showFullReport() {
+            if (!currentReport) return;
+            const modal = document.getElementById('reportModal');
+            const content = document.getElementById('modalContent');
+            
+            const fieldLabels = {
+                'station': 'BFP Station',
+                'date': 'Date of Response',
+                'location': 'Incident Location',
+                'responding_unit': 'Responding Unit',
+                'time_received': 'Time Received',
+                'time_dispatched': 'Time Dispatched',
+                'time_arrival': 'Time Arrival',
+                'response_time': 'Response Time (min)',
+                'distance': 'Distance (km)',
+                'alarm_status': 'Alarm Status',
+                'type': 'Type of Occupancy',
+                'weather': 'Weather Condition',
+                'temperature': 'Temperature (°C)',
+                'humidity': 'Humidity (%)',
+                'wind_speed': 'Wind Speed (km/h)',
+                'road_condition': 'Road Condition',
+                'injured_civ': 'Injured (Civilian)',
+                'injured_bfp': 'Injured (BFP)',
+                'death_civ': 'Deaths (Civilian)',
+                'death_bfp': 'Deaths (BFP)',
+                'remarks': 'Remarks'
+            };
+
+            const numericFields = ['response_time', 'distance', 'temperature', 'humidity', 'wind_speed', 'injured_civ', 'injured_bfp', 'death_civ', 'death_bfp'];
+
+            let html = '';
+            for (const [key, label] of Object.entries(fieldLabels)) {
+                if (currentReport[key] !== undefined) {
+                    let displayValue = currentReport[key];
+                    if (displayValue === undefined || displayValue === null || displayValue === 'N/A') {
+                        displayValue = numericFields.includes(key) ? '0' : '-';
+                    }
+                    
+                    html += `
+                        <div class="border-b pb-2">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">${label}</p>
+                            <p class="text-gray-800 font-medium">${displayValue}</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            content.innerHTML = html;
+            modal.classList.remove('hidden');
+            feather.replace();
+        }
+
+        function closeFullReport() {
+            document.getElementById('reportModal').classList.add('hidden');
+        }
+
+        function editReport() {
+            if (!currentReport) return;
+            
+            const modal = document.getElementById('reportModal');
+            const content = document.getElementById('modalContent');
+            
+            const fieldLabels = {
+                'station': 'BFP Station',
+                'date': 'Date of Response',
+                'location': 'Incident Location',
+                'responding_unit': 'Responding Unit',
+                'time_received': 'Time Received',
+                'time_dispatched': 'Time Dispatched',
+                'time_arrival': 'Time Arrival',
+                'response_time': 'Response Time (min)',
+                'distance': 'Distance (km)',
+                'alarm_status': 'Alarm Status',
+                'type': 'Type of Occupancy',
+                'weather': 'Weather Condition',
+                'temperature': 'Temperature (°C)',
+                'humidity': 'Humidity (%)',
+                'wind_speed': 'Wind Speed (km/h)',
+                'road_condition': 'Road Condition',
+                'injured_civ': 'Injured (Civilian)',
+                'injured_bfp': 'Injured (BFP)',
+                'death_civ': 'Deaths (Civilian)',
+                'death_bfp': 'Deaths (BFP)',
+                'remarks': 'Remarks'
+            };
+
+            const editableFields = ['responding_unit', 'alarm_status', 'distance', 'weather', 'temperature', 'humidity', 'wind_speed', 'road_condition', 'remarks'];
+            
+            let html = '';
+            for (const [key, label] of Object.entries(fieldLabels)) {
+                if (currentReport[key] !== undefined && editableFields.includes(key)) {
+                    let displayValue = currentReport[key];
+                    if (displayValue === undefined || displayValue === null || displayValue === '-') {
+                        displayValue = '';
+                    }
+                    
+                    html += `
+                        <div class="border-b pb-3 mb-3">
+                            <label class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-1 block">${label}</label>
+                            <input type="text" id="edit-${key}" value="${displayValue}" 
+                                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                    `;
+                }
+            }
+            
+            // Add update and cancel buttons
+            html += `
+                <div class="col-span-1 md:col-span-2 flex gap-3 mt-6">
+                    <button onclick="saveReportEdits()" class="flex-1 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold flex items-center justify-center">
+                        <i data-feather="save" class="w-4 h-4 mr-2"></i> Save Changes
+                    </button>
+                    <button onclick="cancelEditReport()" class="flex-1 px-6 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg font-semibold">
+                        Cancel
+                    </button>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+            feather.replace();
+        }
+
+        function saveReportEdits() {
+            const editableFields = ['responding_unit', 'alarm_status', 'distance', 'weather', 'temperature', 'humidity', 'wind_speed', 'road_condition', 'remarks'];
+            
+            // Update currentReport with edited values
+            editableFields.forEach(key => {
+                const editElement = document.getElementById(`edit-${key}`);
+                if (editElement) {
+                    currentReport[key] = editElement.value || '-';
+                }
+            });
+            
+            // Close the modal and show updated report
+            closeFullReport();
+            
+            // Show success message
+            alert('Report updated successfully! The print will reflect these changes.');
+            
+            feather.replace();
+        }
+
+        function cancelEditReport() {
+            showFullReport(); // Reload the report in view mode
+        }
+
+        function printReport() {
+            if (!currentReport) {
+                alert("Report data not loaded yet.");
+                return;
+            }
+            
+            // Close the report modal if it's open
+            closeFullReport();
+
+            const printContainer = document.getElementById('print-content');
+            const incidentIdEl = document.getElementById('print-incident-id');
+            const dateEl = document.getElementById('print-date');
+
+            incidentIdEl.textContent = `INCIDENT #${incidentId}`;
+            
+            // Format date for the header
+            const reportDate = currentReport.date || currentReport.date_of_incident || '-';
+            dateEl.textContent = reportDate;
+            
+            // Ensure date is in the report object for the specifications table
+            if (!currentReport.date) currentReport.date = reportDate;
+
+            const fieldLabels = {
+                'date': 'Date of Incident',
+                'station': 'BFP Station',
+                'location': 'Incident Location',
+                'responding_unit': 'Responding Unit',
+                'time_received': 'Time Received',
+                'time_dispatched': 'Time Dispatched',
+                'time_arrival': 'Time Arrival',
+                'response_time': 'Response Time (min)',
+                'distance': 'Distance (km)',
+                'alarm_status': 'Alarm Status',
+                'type': 'Type of Occupancy',
+                'weather': 'Weather Condition',
+                'temperature': 'Temperature (°C)',
+                'humidity': 'Humidity (%)',
+                'wind_speed': 'Wind Speed (km/h)',
+                'road_condition': 'Road Condition',
+                'injured_civ': 'Injured (Civilian)',
+                'injured_bfp': 'Injured (BFP)',
+                'death_civ': 'Deaths (Civilian)',
+                'death_bfp': 'Deaths (BFP)',
+                'remarks': 'Remarks'
+            };
+
+            const numericFields = ['response_time', 'distance', 'temperature', 'humidity', 'wind_speed', 'injured_civ', 'injured_bfp', 'death_civ', 'death_bfp'];
+
+            let html = `
+                <!-- 1. INCIDENT SPECIFICATIONS -->
+                <div style="border: 2px solid #000; padding: 20px; border-radius: 8px; background: #fff; margin-bottom: 25px;">
+                    <h3 style="font-size: 14px; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase;">1. INCIDENT SPECIFICATIONS</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 2%;">
+            `;
+
+            const specFields = ['date', 'station', 'location', 'responding_unit', 'alarm_status', 'type', 'weather', 'road_condition', 'remarks'];
+            specFields.forEach(key => {
+                if (currentReport[key] !== undefined) {
+                    let displayValue = currentReport[key];
+                    if (displayValue === undefined || displayValue === null || displayValue === '') displayValue = '-';
+                    
+                    html += `
+                        <div style="width: 49%; display: flex; align-items: flex-end; margin-bottom: 12px;">
+                            <span style="font-size: 10px; font-weight: 900; color: #4b5563; text-transform: uppercase; width: 130px; min-width: 130px;">${fieldLabels[key]}:</span>
+                            <span style="font-size: 12px; font-weight: 900; color: #000; border-bottom: 1px solid #000; flex-grow: 1; padding-bottom: 2px;">${displayValue}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `</div></div>`;
+
+            // 2. OPERATIONAL TIMELINES & CASUALTIES
+            html += `
+                <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+                    <div style="flex: 1; border: 2px solid #000; padding: 15px; border-radius: 8px; background: #fff;">
+                        <h3 style="font-size: 14px; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase;">2.1 OPERATIONAL TIMELINE</h3>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            ${['time_received', 'time_dispatched', 'time_arrival', 'response_time', 'distance'].map(key => {
+                                let val = currentReport[key];
+                                if (val === undefined || val === null || val === '') {
+                                    val = numericFields.includes(key) ? '0' : '-';
+                                }
+                                return `
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #d1d5db; padding-bottom: 4px;">
+                                        <span style="font-size: 10px; font-weight: 900; color: #4b5563; text-transform: uppercase;">${fieldLabels[key]}</span>
+                                        <span style="font-size: 12px; font-weight: 900; color: #000;">${val}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div style="flex: 1; border: 2px solid #000; padding: 15px; border-radius: 8px; background: #fff;">
+                        <h3 style="font-size: 14px; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase;">2.2 CASUALTY RECORD</h3>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            ${['injured_civ', 'injured_bfp', 'death_civ', 'death_bfp'].map(key => {
+                                let val = currentReport[key];
+                                if (val === undefined || val === null || val === '') val = '0';
+                                return `
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #d1d5db; padding-bottom: 4px;">
+                                        <span style="font-size: 10px; font-weight: 900; color: #4b5563; text-transform: uppercase;">${fieldLabels[key]}</span>
+                                        <span style="font-size: 12px; font-weight: 900; color: ${key.includes('death') ? '#b91c1c' : '#c2410c'};">${val}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (window.lastFeedbackData) {
+                const fb = window.lastFeedbackData;
+                
+                html += `
+                    <div style="border: 2px solid #000; padding: 20px; border-radius: 8px; background: #fff; margin-bottom: 25px;">
+                        <h3 style="font-size: 14px; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase;">3. SYSTEM ANALYSIS & FEEDBACK</h3>
+                        <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 20px;">
+                            <div style="flex: 1; text-align: center; border: 1px solid #d1d5db; padding: 12px; border-radius: 6px;">
+                                <p style="font-size: 9px; font-weight: 900; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Avg Response Time</p>
+                                <p style="font-size: 18px; font-weight: 900; color: #1e40af; margin: 0;">${fb.performance_overview?.avg_response_time?.toFixed(2) || '0'} min</p>
+                            </div>
+                            <div style="flex: 1; text-align: center; border: 1px solid #d1d5db; padding: 12px; border-radius: 6px;">
+                                <p style="font-size: 9px; font-weight: 900; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Model Accuracy</p>
+                                <p style="font-size: 18px; font-weight: 900; color: #15803d; margin: 0;">${(fb.performance_overview?.model_accuracy * 100)?.toFixed(1) || '0'}%</p>
+                            </div>
+                            <div style="flex: 1; text-align: center; border: 1px solid #d1d5db; padding: 12px; border-radius: 6px;">
+                                <p style="font-size: 9px; font-weight: 900; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;">Prediction Variance</p>
+                                <p style="font-size: 18px; font-weight: 900; color: #a16207; margin: 0;">${Math.abs(fb.predicted_vs_actual?.difference || 0).toFixed(2)} min</p>
+                            </div>
+                        </div>
+
+                        ${fb.improvement_suggestions ? `
+                            <div style="margin-bottom: 15px;">
+                                <h4 style="font-size: 10px; font-weight: 900; color: #000; text-transform: uppercase; margin-bottom: 8px;">Improvement Suggestions:</h4>
+                                <ul style="font-size: 10px; font-weight: 700; color: #374151; list-style-type: disc; padding-left: 20px;">
+                                    ${fb.improvement_suggestions.slice(0, 3).map(s => `<li style="margin-bottom: 4px;">${s}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            printContainer.innerHTML = html;
+            
+            // Show the preview overlay
+            document.getElementById('printPreviewOverlay').style.display = 'block';
+            document.getElementById('printableReport').style.display = 'block';
+            
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+
+        function closePrintPreview() {
+            document.getElementById('printPreviewOverlay').style.display = 'none';
+            document.getElementById('printableReport').style.display = 'none';
+        }
+
+        function triggerActualPrint() {
+            window.print();
+        }
+
+        function displayFeedback(feedback) {
+            window.lastFeedbackData = feedback; // Store for printing
+            const content = document.getElementById('feedbackContent');
+            const report = feedback.report_details || {};
+            
+            // Handle improvement suggestions
+            let improvementSuggestionsHTML = '';
+            if (feedback.improvement_suggestions && Array.isArray(feedback.improvement_suggestions)) {
+                improvementSuggestionsHTML = `
+                <div class="bg-green-50 border-l-4 border-green-500 p-6 mb-6 rounded-lg">
+                    <h2 class="text-xl font-bold text-green-900 mb-3">
+                        <i data-feather="trending-up" class="w-5 h-5 inline-block mr-2"></i>
+                        Improvement Suggestions
+                    </h2>
+                    <ul class="space-y-3">
+                        ${feedback.improvement_suggestions.map(suggestion => {
+                            if (typeof suggestion === 'object') {
+                                return `
+                                <li class="bg-white p-4 rounded shadow-sm border border-green-100">
+                                    <div class="flex items-center mb-2">
+                                        <i data-feather="check-circle" class="w-5 h-5 text-green-600 mr-2"></i>
+                                        <span class="font-bold text-green-800">${suggestion.title || 'Improvement'}</span>
+                                        <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] uppercase rounded-full">${suggestion.priority || 'medium'}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-700 mb-2">${suggestion.description || ''}</p>
+                                    ${suggestion.actionable_steps ? `
+                                        <div class="mt-2 pl-4 border-l-2 border-green-200">
+                                            <p class="text-[10px] font-bold text-green-700 uppercase mb-1">Actionable Steps:</p>
+                                            <ul class="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                                                ${suggestion.actionable_steps.map(step => `<li>${step}</li>`).join('')}
+                                            </ul>
+                                        </div>
+                                    ` : ''}
+                                </li>
+                                `;
+                            }
+                            return `
+                            <li class="flex items-start">
+                                <i data-feather="check-circle" class="w-5 h-5 text-green-600 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span class="text-gray-700">${suggestion}</span>
+                            </li>
+                            `;
+                        }).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+
+            // Handle training recommendations
+            let trainingRecommendationsHTML = '';
+            if (feedback.training_recommendations && Array.isArray(feedback.training_recommendations)) {
+                trainingRecommendationsHTML = `
+                <div class="bg-purple-50 border-l-4 border-purple-500 p-6 mb-6 rounded-lg">
+                    <h2 class="text-xl font-bold text-purple-900 mb-3">
+                        <i data-feather="book-open" class="w-5 h-5 inline-block mr-2"></i>
+                        Training Recommendations
+                    </h2>
+                    <ul class="space-y-3">
+                        ${feedback.training_recommendations.map(rec => {
+                            if (typeof rec === 'object') {
+                                return `
+                                <li class="bg-white p-3 rounded shadow-sm">
+                                    <div class="flex items-center mb-1">
+                                        <i data-feather="award" class="w-4 h-4 text-purple-600 mr-2"></i>
+                                        <span class="font-bold text-purple-800">${rec.title || 'Recommendation'}</span>
+                                        <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-[10px] uppercase rounded-full">${rec.priority || 'medium'}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-700 ml-6">${rec.description || ''}</p>
+                                </li>
+                                `;
+                            }
+                            return `
+                            <li class="flex items-start">
+                                <i data-feather="award" class="w-5 h-5 text-purple-600 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span class="text-gray-700">${rec}</span>
+                            </li>
+                            `;
+                        }).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+            
+            // Handle success factors
+            let successFactorsHTML = '';
+            if (feedback.success_factors && Array.isArray(feedback.success_factors)) {
+                successFactorsHTML = `
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6 rounded-lg">
+                    <h2 class="text-xl font-bold text-blue-900 mb-3">
+                        <i data-feather="check-square" class="w-5 h-5 inline-block mr-2"></i>
+                        Success Factors
+                    </h2>
+                    <ul class="space-y-2">
+                        ${feedback.success_factors.map(factor => `
+                            <li class="flex items-start">
+                                <i data-feather="star" class="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span class="text-gray-700">${factor}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                `;
+            }
+            
+            let html = `
+                <!-- Performance Overview -->
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 p-6 mb-6 rounded-lg">
+                    <h2 class="text-2xl font-bold text-blue-900 mb-4">
+                        <i data-feather="activity" class="w-6 h-6 inline-block mr-2"></i>
+                        Performance Overview
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <p class="text-sm text-gray-600 mb-1">Average Response Time</p>
+                            <p class="text-3xl font-bold text-blue-600">${feedback.performance_overview?.avg_response_time?.toFixed(2) || '0'} min</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <p class="text-sm text-gray-600 mb-1">Model Accuracy</p>
+                            <p class="text-3xl font-bold text-green-600">${(feedback.performance_overview?.model_accuracy * 100)?.toFixed(1) || '0'}%</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <p class="text-sm text-gray-600 mb-1">Total Incidents</p>
+                            <p class="text-3xl font-bold text-purple-600">${feedback.performance_overview?.total_incidents || '0'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Factors -->
+                ${successFactorsHTML}
+
+                <!-- Predicted vs Actual -->
+                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-6 mb-6 rounded-lg">
+                    <h2 class="text-xl font-bold text-yellow-900 mb-3">
+                        <i data-feather="target" class="w-5 h-5 inline-block mr-2"></i>
+                        Prediction Analysis
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-700 mb-2"><strong>Predicted Response Time:</strong></p>
+                            <p class="text-2xl font-bold text-yellow-700">${feedback.predicted_vs_actual?.predicted?.toFixed(2) || '0'} minutes</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-700 mb-2"><strong>Actual Response Time:</strong></p>
+                            <p class="text-2xl font-bold text-yellow-700">${feedback.predicted_vs_actual?.actual?.toFixed(2) || '0'} minutes</p>
+                        </div>
+                    </div>
+                    ${feedback.predicted_vs_actual?.difference ? `
+                        <p class="mt-4 text-sm text-gray-700">
+                            <strong>Difference:</strong> ${Math.abs(feedback.predicted_vs_actual.difference).toFixed(2)} minutes
+                            ${feedback.predicted_vs_actual.difference > 0 ? '(Slower than predicted)' : '(Faster than predicted)'}
+                        </p>
+                    ` : ''}
+                </div>
+
+                <!-- Improvement Suggestions -->
+                ${improvementSuggestionsHTML}
+
+                <!-- Training Recommendations -->
+                ${trainingRecommendationsHTML}
+            `;
+
+            content.innerHTML = html;
+            feather.replace();
+        }
+
+        // Initialize
+        function updateTime() {
+            const now = new Date();
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            const dateStr = now.toLocaleDateString('en-US', dateOptions);
+            const timeStr = now.toLocaleTimeString('en-US', timeOptions);
+            const timeElement = document.getElementById('current-time');
+            if (timeElement) {
+                timeElement.innerHTML = `<div class="text-xs opacity-90">${dateStr}</div><div class="font-bold">${timeStr}</div>`;
+            }
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        function logout() {
+            localStorage.removeItem('bfp_admin_logged_in');
+            localStorage.removeItem('bfp_admin_user');
+            window.location.href = '/login';
+        }
+
+        // Location status logic
+        function checkLocationStatus() {
+            const statusElement = document.getElementById('location-status');
+            const textElement = statusElement ? statusElement.querySelector('.location-text') : null;
+            if (statusElement) {
+                if (localStorage.getItem('locationActive') === 'true') {
+                    if (textElement) textElement.textContent = 'LIVE';
+                    statusElement.className = 'location-status location-active';
+                } else {
+                    if (textElement) textElement.textContent = 'GPS';
+                    statusElement.className = 'location-status location-inactive';
+                }
+            }
+        }
+        checkLocationStatus();
+
+        feather.replace();
+    </script>
+</body>
+</html>
