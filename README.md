@@ -30,7 +30,34 @@ The core of the system relies on an ensemble learning approach to minimize varia
 ### Prerequisites
 * Python 3.8+
 * Pip (Python package manager)
-* *[Any other system requirements]*
+* Python 3.7+ (for Flask application)
+* Python Libraries (from requirements.txt):
+* Flask 2.3.3 - Web framework
+* Flask-CORS 4.0.0 - Cross-origin requests
+* Pandas 2.0.3 - Data processing
+* NumPy 1.24.3 - Numerical computing
+* Scikit-learn 1.3.0 - Machine learning
+* XGBoost 2.0.0 - ML model training
+* Joblib 1.3.2 - Model serialization
+* SQLAlchemy 2.0.23 - ORM
+* Flask-SQLAlchemy 3.1.1 - Database integration
+* SciPy 1.11.1 - Scientific computing
+
+### Frontend Requirements
+* Modern Web Browser (Chrome, Firefox, Edge, Safari)
+* JavaScript (ES6+)
+* APIs/Services:
+* Google Maps API (for mapping and navigation)
+* Leaflet.js (alternative mapping library)
+
+### Database
+* SQLite 3 (embedded, no separate installation needed)
+* Pre-configured database file: fire_response.db
+* Data Requirements
+* Training Data Files:
+* fire-incidents.csv - Historical fire incident data
+* fire-hydrants.json - Hydrant location data
+* hazard-roads.json - Road hazard information
 
 ### Steps
 1. **Clone the repository:**
